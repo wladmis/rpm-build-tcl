@@ -1,0 +1,86 @@
+#!/bin/sh
+# -*- tcl -*- \
+exec ${RPM_TCLSH:-/usr/bin/tclsh} "$0" "$@"
+
+###############################################################################
+# tcl.req -- Finds requires for given list of tcl scripts
+#
+# Author: Sergey Bolshakov <sbolshakov@altlinux.ru>
+# Created: Thu Oct 14 16:45:59 MSD 2004
+# Modified: $Date: 2004/10/14 12:49:46 $
+# Version: $Id: tcl.req,v 1.1 2004/10/14 12:49:46 me Exp $
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this file.  If not, write to the Free Software
+# Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+##############################################################################
+
+namespace eval ::pkg::rpm {
+}
+
+proc ::pkg::rpm::__package {interp args} {
+    switch -exact -- [lindex $args 0] {
+	require {
+	    set ndx 1
+	    set p [lindex $args $ndx]
+	    if {$p eq "-exact"} {
+		incr ndx
+		set p [lindex $args $ndx]
+	    }
+	    incr ndx
+	    if {$p eq "Tcl"} return
+	    set v [lindex $args $ndx]
+	    puts -nonewline "tcl\($p\)"
+	    if {$ndx == 3} {
+		puts " = $v"
+	    } else {
+		puts ""
+	    }
+	    # eval $interp invokehidden package $args
+	}
+	provide {
+	    if {[lindex $args 1] eq "Tcl"} {
+		eval package $args
+	    }
+	}
+	default {
+	    # puts stderr "=== package $args"
+	    eval $interp invokehidden package $args
+	}
+    }
+}
+
+proc ::pkg::rpm::requires f {
+    if {[string eq [file tail $f] "pkgIndex.tcl"]} return
+
+    set i [interp create]
+
+    $i hide package
+    $i alias package [namespace current]::__package $i
+    $i eval [list proc unknown args {}]
+
+    if {[catch {
+	$i eval [list source $f]
+    } err]} {
+	puts stderr "warning: $f: $err"
+    }
+
+    interp delete $i
+}
+
+namespace eval ::pkg::rpm {
+    foreach _ [split [string trim [read stdin]]] {
+	requires $_
+    }
+}

@@ -1,0 +1,83 @@
+#!/bin/sh
+# -*- tcl -*- \
+exec ${RPM_TCLSH:-/usr/bin/tclsh} "$0" "$@"
+
+###############################################################################
+# tcl.proveq -- Finds provides in tcl index files (pkgIndex.tcl)
+#
+# Author: Sergey Bolshakov <sbolshakov@altlinux.ru>
+# Created: Thu Oct 14 16:45:59 MSD 2004
+# Modified: $Date: 2004/10/14 12:49:46 $
+# Version: $Id: tcl.prov,v 1.1 2004/10/14 12:49:46 me Exp $
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# This file is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs; see the file COPYING.  If not, write to
+# the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+##############################################################################
+
+namespace eval ::pkg::rpm {
+}
+
+proc ::pkg::rpm::__package {interp args} {
+    switch -exact -- [lindex $args 0] {
+	require {
+	    if {[catch {eval package $args} v]} {
+		# aiee empty if
+		puts stderr "warning: $v"
+	    } else {
+		return $v
+	    }
+	}
+	provide {
+	    catch {eval package require [lrange $args 1 end]}
+	    eval package $args
+	}
+	default {
+	    # puts stderr "=== package $args"
+	    eval $interp invokehidden package $args
+	}
+    }
+}
+
+proc ::pkg::rpm::provides f {
+    set i [interp create]
+
+    $i eval {
+	foreach _ [package names] {
+	    if {$_ eq "Tcl"} continue
+	    package forget $_
+	}
+    }
+
+    $i hide package
+    $i alias package [namespace current]::__package $i
+
+    $i eval [list set dir [file dirname $f]]
+    $i eval [list source $f]
+    $i eval {
+	foreach n [package names] {
+	    foreach v [package versions $n] {
+		puts "tcl\($n\) = $v"
+	    }
+	}
+    }
+    
+    interp delete $i
+}
+
+namespace eval ::pkg::rpm {
+    foreach _ [split [string trim [read stdin]] \n] {
+	provides $_
+    }
+}
