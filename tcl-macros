@@ -1,138 +1,76 @@
-#==========================================
-# $Id: tcl-macros,v 1.1 2004/09/16 11:15:04 me Exp $
-#==========================================
-# xemacs binary
-%__xemacs %_bindir/xemacs
+#===============================================================================
+# $Id: tcl-macros,v 1.2 2004/10/16 12:30:16 me Exp $
+#===============================================================================
+# tclsh binary
+%__tclsh %_bindir/tclsh
 
-#
-# directory layout
-#
-%_xemacs_confdir %_sysconfdir/xemacs
-%_xemacs_sitestartdir %_xemacs_confdir/site-start.d
+# tcl directory layout
+%_tcllibdir %_libdir/tcl
+%_tcldatadir %_datadir/tcl
 
-# version/arch specific
-%_xemacs_libdir %_libdir/%name-%version
-%_xemacs_archlibdir %_xemacs_libdir/%_target_platform
+#-------------------------------------------------------------------------------
+# TEA tweaks
+#-------------------------------------------------------------------------------
+# 1. tcl.m4 we have contains old SC_* macros, new TEA_* resides in tea.m4		
+# 2. directory layout differs from generic tea:
+#    so goes to %_tcllibdir, other stuff - into %_tcldatadir/*/
+#-------------------------------------------------------------------------------
+%tea_patch \
+if test -f aclocal.m4; then \
+%__chmod ug+w aclocal.m4 \
+%__subst 's|^builtin(include,.\\+/tcl.m4)||' aclocal.m4 \
+fi \
+if test -f Makefile.in; then \
+%__chmod ug+w Makefile.in \
+%__cat <<EOF |%__tclsh \
+set fc [read [set f [open Makefile.in]] [file size Makefile.in]] \
+regsub {(?x) \
+    (\\\npkgdatadir\\\s*=\\\s*\\\\\\$\\\(datadir\\\)/)(\\\\\\$\\\(PKG_DIR\\\)) \
+} \\\$fc {\\\1tcl/\\\2} fc \
+regsub {(?x) \
+    (\\\npkglibdir\\\s*=\\\s*\\\\\\$\\\(libdir\\\)/)\\\\\\$\\\(PKG_DIR\\\) \
+} \\\$fc {\\\1tcl} fc \
+regsub {(?x) \
+    (?: \
+     (\\\ninstall-lib-binaries:\\\s* \
+			\\\n\\\s+@mkdir\\\s+-p\\\s+\\\\\\$\\\(DESTDIR\\\)\\\\\\$\\\(pkglibdir\\\)) \
+     (.+\\\n\\\s+@list='\\\\\\$\\\(RUNTIME_SOURCES\\\)';.+){1,1}? \
+     (\\\\\\$\\\(pkglibdir\\\)) \
+     (.+){1,1}? \
+     (\\\\\\$\\\(pkglibdir\\\)) \
+     (.+done){1,1}? \
+     ){1,1}? \
+} \\\$fc {\\\1 \\\$(DESTDIR)\\\$(pkgdatadir)\\\2\\\$(pkgdatadir)\\\4\\\$(pkgdatadir)\\\6} fc \
+close \\\$f \
+puts -nonewline [set f [open Makefile.in w]] \\\$fc \
+close \\\$f \
+EOF\
+fi \
+%nil
 
-%_xemacs_datadir %_datadir/%name-%version
-%_xemacs_etcdir %_xemacs_datadir/etc
-%_xemacs_docdir %_xemacs_datadir/doc
-%_xemacs_lispdir %_xemacs_datadir/lisp
+%tea_makeinstall(n:) \
+%{-n:_name="%{-n*}"}%{!-n:%{?teaname:_name="%teaname"}%{!?teaname:%{error:teaname is not set and -n wasn't given}}} \
+%makeinstall libdir=%buildroot%_tcllibdir pkglibdir=%buildroot%_tcldatadir/$_name %* \
+%nil
 
-# info related stuff
-%_xemacs_infodir %_infodir/xemacs
-%_xemacs_infosection --section=XEmacs
-
-# various package-holding directories
-%__xemacs_package_root %_datadir/xemacs
-%__xemacs_pkgdir %__xemacs_package_root/xemacs-packages
-%__xemacs_muledir	%__xemacs_package_root/mule-packages
-%__xemacs_sitedir %__xemacs_package_root/site-packages
-
-%_xemacs_package_dir %{?xemacs_package:%__xemacs_pkgdir}%{?!xemacs_package:%{?xemacs_mule_package:%__xemacs_muledir}%{?!xemacs_mule_package:%{error:nor xemacs_package neither xemacs_mule_package is set}}}
-%_xemacs_package_etc_dir %_xemacs_package_dir/etc
-%_xemacs_package_lisp_dir %_xemacs_package_dir/lisp
-%_xemacs_package_lib_dir %_xemacs_package_dir/lib-src
+%tea_makeindex(vdlf:L:C:) \
+%{-v:_verbose="-verbose"} \
+%{-d:_direct="-direct"} \
+%{-l:_lazy="-lazy"} \
+%{-f:_files='../../../lib/tcl/%{-f*}'}%{!-f:_files='../../../lib/tcl/*.so'} \
+%{-L:_load="-load %{-L*}"} \
+%{-C:_dir="%{-C*}"}%{!-C:%{?teaname:_dir="%buildroot%_tcldatadir/%teaname"}%{!?teaname:%{error:teaname is not set and -C wasn't given}}} \
+if ! test -d $_dir; then %__mkdir_p $_dir; fi \
+echo pkg_mkIndex $_verbose $_direct $_lazy $_load -- $_dir '*.tcl' $_files %* |%__tclsh \
+%{-v:unset _verbose} \
+%{-d:unset _direct} \
+%{-l:unset _lazy} \
+%{-f:unset _files} \
+%{-L:unset _load} \
+unset _dir \
+%nil
 
 #===============================================================================
-# build related macros
-#===============================================================================
-
-%__xemacs_package_name %{?xemacs_package:%xemacs_package}%{?xemacs_mule_package:%xemacs_mule_package}
-%__xemacs_package_build_etc_dir etc/%__xemacs_package_name
-%__xemacs_package_build_lisp_dir lisp/%__xemacs_package_name
-%__xemacs_package_build_info_dir info
-
-%_xemacs_bytecompile_load_path --eval '(setq load-path (append (list ".") load-path))'
-%_xemacs_bytecompile_cmd -batch %_xemacs_bytecompile_load_path -no-site-file -f batch-byte-compile
-%_xemacs_byterecompile_cmd -batch %_xemacs_bytecompile_load_path -no-site-file -f batch-byte-recompile-directory
-
-%xemacs_bytecompile(C:) \
-%{-C:_mydir="`pwd`"; cd %{-C*}} \
-find . -type f -name \\\*.el -a -not -name _pkg.el -print0 |\\\
-xargs -r0 %__xemacs %_xemacs_bytecompile_cmd \
-%{-C:cd ${_mydir}; unset _mydir} \
-%nil
-
-%xemacs_byterecompile \
-%__xemacs %_xemacs_byterecompile_cmd %__xemacs_package_build_lisp_dir \
-%nil
-
-#
-# install
-#
-
-%xemacs_package_install \
-%__mkdir_p %buildroot%_xemacs_package_dir \
-if test -d %__xemacs_package_build_info_dir; then \
-%__mkdir_p %buildroot%_xemacs_infodir \
-%__install -m0644 %__xemacs_package_build_info_dir/*.info* %buildroot%_xemacs_infodir \
-fi \
-if test -d %__xemacs_package_build_etc_dir; then \
-%__mkdir_p %buildroot%_xemacs_package_etc_dir \
-%__cp -a %__xemacs_package_build_etc_dir %buildroot%_xemacs_package_etc_dir \
-fi \
-if test -d %__xemacs_package_build_lisp_dir; then \
-%__mkdir_p %buildroot%_xemacs_package_lisp_dir \
-%__cp -a %__xemacs_package_build_lisp_dir %buildroot%_xemacs_package_lisp_dir \
-fi \
-%nil
-
-%xemacs_makeinstall \
-	%{__make} INSTALL="%__install -p" EMACS=%__xemacs \\\
-		lispdir=%{?buildroot:%{buildroot}}%{_xemacs_package_lisp_dir} \\\
-		infodir=%{?buildroot:%{buildroot}}%{_xemacs_infodir} \\\
-  %{?_makeinstall_target:%{_makeinstall_target}}
-
-# finds xemacs package files, assuming these are in standard places
-%xemacs_package_find_files \
-(if test -d %buildroot%_xemacs_package_etc_dir; then \
-	find %buildroot%_xemacs_package_etc_dir -type d \\\
-		-mindepth 1 -printf '%%%%dir %p\\\n' \
-	find %buildroot%_xemacs_package_etc_dir -type f \
-fi \
-if test -d %buildroot%_xemacs_package_lisp_dir; then \
-	find %buildroot%_xemacs_package_lisp_dir -type d \\\
-		-mindepth 1 -printf '%%%%dir %p\\\n' \
-	find %buildroot%_xemacs_package_lisp_dir -type f \\\
-		-name \\\*.elc -a -not -name _pkg.elc -o -name _pkg.el \
-	find %buildroot%_xemacs_package_lisp_dir -type f \\\
-		-name \\\*.el -a -not -name _pkg.el -exec \\\
-		/bin/sh -c 'test -f "{}c" || echo {}' \\\; \
-fi \
-if test -d %buildroot%_xemacs_package_lib_dir; then \
-	find %buildroot%_xemacs_package_lib_dir -type d \\\
-		-mindepth 1 -printf '%%%%dir %p\\\n' \
-	find %buildroot%_xemacs_package_lib_dir -type f \
-fi \
-if test -d %buildroot%_xemacs_infodir; then \
-	find %buildroot%_xemacs_infodir -type f -printf '%p.*\\\n' \
-fi \
-) |sed 's|%buildroot||' > %name-files \
-%nil
-
-# pre/post scriptlets
-%xemacs_install_info() \
-for f in %*; do \
-	if [ "$f" = "${f##*/}" ]; then \
-		f="%_xemacs_infodir/$f" \
-	fi \
-	%__install_info %_xemacs_infosection --dir-file="%_xemacs_infodir/dir" --info-file="$f" \
-done \
-%nil
-
-%xemacs_uninstall_info() \
-if [ $1 = 0 ]; then \
-	for f in %*; do \
-		if [ "$f" = "${f##*/}" ]; then \
-			f="%_xemacs_infodir/$f" \
-		fi \
-		%__install_info %_xemacs_infosection --delete --dir-file="%_xemacs_infodir/dir" --info-file="$f" \
-  done \
-fi \
-%nil
-
-#==========================================
 #local variables:
 #mode: rpm-spec
 #fill-column: 80

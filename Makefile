@@ -5,10 +5,13 @@ RPMSPEC	  = $(PACKAGE).spec
 VERSION	= $(shell $(RPM) -q --qf '[%{VERSION} ]' --specfile $(RPMSPEC) |cut -f1 -d ' ')
 RELEASE	= $(shell $(RPM) -q --qf '[%{RELEASE} ]' --specfile $(RPMSPEC) |cut -f1 -d ' ')
 TARFILE = $(PACKAGE)-$(VERSION).tar
-TARDIR	= $(shell $(RPM) --eval %_sourcedir)
+TARDIR	= $(shell $(RPM) --define 'name $(PACKAGE)' --eval %_sourcedir)
 
 PKGSRC	= \
-	tcl-macros
+	tcl-macros \
+	tcl.prov \
+	tcl.req \
+	README
 
 PKGALL	= $(PKGSRC) $(RPMSPEC)
 

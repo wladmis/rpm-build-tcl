@@ -7,8 +7,8 @@ exec ${RPM_TCLSH:-/usr/bin/tclsh} "$0" "$@"
 #
 # Author: Sergey Bolshakov <sbolshakov@altlinux.ru>
 # Created: Thu Oct 14 16:45:59 MSD 2004
-# Modified: $Date: 2004/10/14 12:49:46 $
-# Version: $Id: tcl.req,v 1.1 2004/10/14 12:49:46 me Exp $
+# Modified: $Date: 2004/10/16 12:30:16 $
+# Version: $Id: tcl.req,v 1.2 2004/10/16 12:30:16 me Exp $
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -69,6 +69,7 @@ proc ::pkg::rpm::requires f {
     $i hide package
     $i alias package [namespace current]::__package $i
     $i eval [list proc unknown args {}]
+    $i eval [list proc puts args {}]
 
     if {[catch {
 	$i eval [list source $f]
