@@ -7,8 +7,8 @@ exec ${RPM_TCLSH:-/usr/bin/tclsh} "$0" "$@"
 #
 # Author: Sergey Bolshakov <sbolshakov@altlinux.ru>
 # Created: Thu Oct 14 16:45:59 MSD 2004
-# Modified: $Date: 2004/10/16 12:30:16 $
-# Version: $Id: tcl.req,v 1.2 2004/10/16 12:30:16 me Exp $
+# Modified: $Date: 2004/10/16 16:11:14 $
+# Version: $Id: tcl.req,v 1.3 2004/10/16 16:11:14 me Exp $
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,27 +27,33 @@ exec ${RPM_TCLSH:-/usr/bin/tclsh} "$0" "$@"
 ##############################################################################
 
 namespace eval ::pkg::rpm {
+    variable catched [list]
+    variable requires [list]
+}
+
+proc ::pkg::rpm::addreq {type rest} {
+    variable catched
+    variable requires
+
+    if {[lindex $rest 0] eq "-exact"} {
+	set versioned {}
+	set rest [lrange $rest 1 end]
+    }
+
+    foreach {name version} $rest break
+    
+    if {$name eq "Tcl"} return
+
+    lappend $type \
+	[expr {[info exists versioned] ?
+	       [list $name $version] :
+	       [list $name {}]}]
 }
 
 proc ::pkg::rpm::__package {interp args} {
     switch -exact -- [lindex $args 0] {
 	require {
-	    set ndx 1
-	    set p [lindex $args $ndx]
-	    if {$p eq "-exact"} {
-		incr ndx
-		set p [lindex $args $ndx]
-	    }
-	    incr ndx
-	    if {$p eq "Tcl"} return
-	    set v [lindex $args $ndx]
-	    puts -nonewline "tcl\($p\)"
-	    if {$ndx == 3} {
-		puts " = $v"
-	    } else {
-		puts ""
-	    }
-	    # eval $interp invokehidden package $args
+	    addreq requires [lrange $args 1 end]
 	}
 	provide {
 	    if {[lindex $args 1] eq "Tcl"} {
@@ -55,9 +61,19 @@ proc ::pkg::rpm::__package {interp args} {
 	    }
 	}
 	default {
-	    # puts stderr "=== package $args"
 	    eval $interp invokehidden package $args
 	}
+    }
+}
+
+proc ::pkg::rpm::__catch {interp args} {
+    set body [lindex $args 0]
+    if {[llength $body] >= 3 &&
+	[lindex $body 0] eq "package" &&
+	[lindex $body 1] eq "require"} {
+	addreq catched [lrange $body 2 end]
+    } else {
+	eval $interp invokehidden catch $args
     }
 }
 
@@ -66,15 +82,20 @@ proc ::pkg::rpm::requires f {
 
     set i [interp create]
 
+    $i hide catch
+    $i alias catch [namespace current]::__catch $i
+
     $i hide package
     $i alias package [namespace current]::__package $i
-    $i eval [list proc unknown args {}]
+
     $i eval [list proc puts args {}]
+    $i eval [list proc unknown args {}]
 
     if {[catch {
 	$i eval [list source $f]
     } err]} {
-	puts stderr "warning: $f: $err"
+	# todo verbose
+	# puts stderr "warning: $f: $err"
     }
 
     interp delete $i
@@ -83,5 +104,29 @@ proc ::pkg::rpm::requires f {
 namespace eval ::pkg::rpm {
     foreach _ [split [string trim [read stdin]]] {
 	requires $_
+    }
+
+    set catched [lsort -uniq $catched]
+    set requires [lsort -uniq $requires]
+
+    if {[info exists ::env(RPM_TCL_REQ_METHOD)] &&
+	$::env(RPM_TCL_REQ_METHOD) eq "strict"} {
+	set requires [lsort -uniq [concat $catched $requires]]
+    }
+
+    if {[info exists ::env(RPM_TCL_REQ_SKIP)] &&
+	[set skiplist [lsort -uniq [split [string trim $::env(RPM_TCL_REQ_SKIP)]]]] eq {}} {
+	unset skiplist
+    }
+
+    foreach _ $requires {
+	foreach {n v} $_ break
+	if {[info exists skiplist] &&
+	    [lsearch -exact $skiplist $n] != -1} continue
+	if {$v eq {}} {
+	    puts "tcl\($n\)"
+	} else {
+	    puts "tcl\($n\) = $v"
+	}
     }
 }
