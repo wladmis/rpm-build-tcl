@@ -1,5 +1,9 @@
 # -*- rpm-spec -*-
-# $Id: rpm-build-tcl.spec,v 1.4 2004/10/16 12:32:57 me Exp $
+# $Id: rpm-build-tcl.spec,v 1.2 2004/10/16 12:30:16 me Exp $
+
+#==========================================
+# all these will be in separate macro file
+#==========================================
 
 Name: rpm-build-tcl
 Version: 0.1
@@ -30,7 +34,7 @@ directories in XEmacsen hierarchy.
 %__install -p -m0755 tcl.prov %buildroot%_libdir/rpm/tcl.prov
 
 %files
-%doc README
+%doc doc/*
 %_sysconfdir/rpm/macros.d/tcl
 %_libdir/rpm/tcl.*
 
