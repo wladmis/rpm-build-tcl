@@ -1,9 +1,9 @@
 # -*- rpm-spec -*-
-# $Id: rpm-build-tcl.spec,v 1.8 2004/11/02 10:33:14 me Exp $
+# $Id: rpm-build-tcl.spec,v 1.9 2004/11/20 16:03:26 me Exp $
 
 Name: rpm-build-tcl
 Version: 0.1
-Release: alt0.2
+Release: alt0.3
 
 Summary: RPM helpers to use with Tcl scripts
 License: GPL
@@ -34,6 +34,9 @@ build process
 %_libdir/rpm/tcl.*
 
 %changelog
+* Sat Nov 20 2004 Sergey Bolshakov <sbolshakov@altlinux.ru> 0.1-alt0.3
+- catched 'exit' in scripts, which can abort findreq process
+
 * Tue Nov  2 2004 Sergey Bolshakov <sbolshakov@altlinux.ru> 0.1-alt0.2
 - added conflicts to older tcl-devel
 
