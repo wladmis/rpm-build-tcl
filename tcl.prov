@@ -7,8 +7,8 @@ exec ${RPM_TCLSH:-/usr/bin/tclsh} "$0" "$@"
 #
 # Author: Sergey Bolshakov <sbolshakov@altlinux.ru>
 # Created: Thu Oct 14 16:45:59 MSD 2004
-# Modified: $Date: 2004/10/14 12:50:56 $
-# Version: $Id: tcl.prov,v 1.2 2004/10/14 12:50:56 me Exp $
+# Modified: $Date: 2004/10/15 09:51:58 $
+# Version: $Id: tcl.prov,v 1.3 2004/10/15 09:51:58 me Exp $
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,13 +27,35 @@ exec ${RPM_TCLSH:-/usr/bin/tclsh} "$0" "$@"
 ##############################################################################
 
 namespace eval ::pkg::rpm {
+    if {![info exists ::env(RPM_BUILD_ROOT)]} return
+    variable pattern [list]
+
+    foreach p [concat $::tcl_pkgPath \
+		   [expr {[info exists ::env(RPM_TCL_LIB_PATH)] ?
+			  [lsort -uniq [split [string trim $::env(RPM_TCL_LIB_PATH)]]] :
+			  [list]}]] {
+	if {[file pathtype $p] eq {absolute}} {
+	    lappend pattern \
+		[eval file join / $::env(RPM_BUILD_ROOT) [lrange [file split $p] 1 end] *]
+	}
+    }
+}
+
+proc ::pkg::rpm::filter {} {
+    variable pattern
+    
+    set result [list]
+    set flist [split [string trim [read stdin] \n]]
+    foreach _ $pattern {
+	set result [concat $result [lsearch -glob -all -inline $flist $_]]
+    }
+    lsort -uniq $result
 }
 
 proc ::pkg::rpm::__package {interp args} {
     switch -exact -- [lindex $args 0] {
 	require {
 	    if {[catch {eval package $args} v]} {
-		# aiee empty if
 		puts stderr "warning: $v"
 	    } else {
 		return $v
@@ -44,13 +66,14 @@ proc ::pkg::rpm::__package {interp args} {
 	    eval package $args
 	}
 	default {
-	    # puts stderr "=== package $args"
 	    eval $interp invokehidden package $args
 	}
     }
 }
 
 proc ::pkg::rpm::provides f {
+    variable provides
+
     set i [interp create]
 
     $i eval {
@@ -65,11 +88,9 @@ proc ::pkg::rpm::provides f {
 
     $i eval [list set dir [file dirname $f]]
     $i eval [list source $f]
-    $i eval {
-	foreach n [package names] {
-	    foreach v [package versions $n] {
-		puts "tcl\($n\) = $v"
-	    }
+    foreach n [$i eval [list package names]] {
+	foreach v [$i eval [list package versions $n]] {
+	    puts "tcl\($n\) = $v"
 	}
     }
     
@@ -77,7 +98,8 @@ proc ::pkg::rpm::provides f {
 }
 
 namespace eval ::pkg::rpm {
-    foreach _ [split [string trim [read stdin]] \n] {
+    foreach _ [filter] {
 	provides $_
     }
 }
+
