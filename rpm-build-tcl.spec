@@ -1,5 +1,5 @@
 # -*- rpm-spec -*-
-# $Id: rpm-build-tcl.spec,v 1.6 2004/10/16 12:48:23 me Exp $
+# $Id: rpm-build-tcl.spec,v 1.7 2004/10/19 15:28:41 me Exp $
 
 Name: rpm-build-tcl
 Version: 0.1
@@ -13,6 +13,7 @@ BuildArch: noarch
 Source0: %name-%version.tar
 
 PreReq: rpm-build >= 4.0.4-alt40.1
+Requires: /etc/rpm/macros.d
 
 %description
 %name is set of scripts and rpm macros to assist in tcl modules
