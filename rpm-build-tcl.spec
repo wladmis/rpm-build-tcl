@@ -1,5 +1,5 @@
 # -*- rpm-spec -*-
-# $Id: rpm-build-tcl.spec,v 1.5 2004/10/16 12:44:52 me Exp $
+# $Id: rpm-build-tcl.spec,v 1.6 2004/10/16 12:48:23 me Exp $
 
 Name: rpm-build-tcl
 Version: 0.1
@@ -15,11 +15,8 @@ Source0: %name-%version.tar
 PreReq: rpm-build >= 4.0.4-alt40.1
 
 %description
-The common site start scripts for XEmacsen contain the default 
-configuration for XEmacsen suggetsted by ALT. Administrators can
-add some scripts of their own to customize XEmacsen even more.
-This package also contains some common, non version- and arch-specific
-directories in XEmacsen hierarchy.
+%name is set of scripts and rpm macros to assist in tcl modules
+build process
 
 %prep
 %setup -qc
