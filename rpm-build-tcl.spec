@@ -1,9 +1,5 @@
 # -*- rpm-spec -*-
-# $Id: rpm-build-tcl.spec,v 1.3 2004/10/16 12:30:31 me Exp $
-
-#==========================================
-# all these will be in separate macro file
-#==========================================
+# $Id: rpm-build-tcl.spec,v 1.5 2004/10/16 12:44:52 me Exp $
 
 Name: rpm-build-tcl
 Version: 0.1
@@ -16,7 +12,7 @@ BuildArch: noarch
 
 Source0: %name-%version.tar
 
-PreReq: rpm-build >= 4.0.4-alt41
+PreReq: rpm-build >= 4.0.4-alt40.1
 
 %description
 The common site start scripts for XEmacsen contain the default 
