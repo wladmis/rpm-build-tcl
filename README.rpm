@@ -7,7 +7,7 @@
 
 - определены макросы:
  + %set_tcl_req_method <value>
-   где <value> может быть одним из: normal, strict,
+   где <value> может быть одним из: normal, strict
    значение по умолчанию: normal
 
  + %add_tcl_lib_path() <value>

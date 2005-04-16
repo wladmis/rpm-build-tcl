@@ -1,5 +1,5 @@
 #===============================================================================
-# $Id: tcl-macros,v 1.2 2004/10/16 12:30:16 me Exp $
+# $Id: tcl-macros,v 1.3 2005/04/16 11:20:25 me Exp $
 #===============================================================================
 # tclsh binary
 %__tclsh %_bindir/tclsh
@@ -8,46 +8,7 @@
 %_tcllibdir %_libdir/tcl
 %_tcldatadir %_datadir/tcl
 
-#-------------------------------------------------------------------------------
-# TEA tweaks
-#-------------------------------------------------------------------------------
-# 1. tcl.m4 we have contains old SC_* macros, new TEA_* resides in tea.m4		
-# 2. directory layout differs from generic tea:
-#    so goes to %_tcllibdir, other stuff - into %_tcldatadir/*/
-#-------------------------------------------------------------------------------
-%tea_patch \
-if test -f aclocal.m4; then \
-%__chmod ug+w aclocal.m4 \
-%__subst 's|^builtin(include,.\\+/tcl.m4)||' aclocal.m4 \
-fi \
-if test -f Makefile.in; then \
-%__chmod ug+w Makefile.in \
-%__cat <<EOF |%__tclsh \
-set fc [read [set f [open Makefile.in]] [file size Makefile.in]] \
-regsub {(?x) \
-    (\\\npkgdatadir\\\s*=\\\s*\\\\\\$\\\(datadir\\\)/)(\\\\\\$\\\(PKG_DIR\\\)) \
-} \\\$fc {\\\1tcl/\\\2} fc \
-regsub {(?x) \
-    (\\\npkglibdir\\\s*=\\\s*\\\\\\$\\\(libdir\\\)/)\\\\\\$\\\(PKG_DIR\\\) \
-} \\\$fc {\\\1tcl} fc \
-regsub {(?x) \
-    (?: \
-     (\\\ninstall-lib-binaries:\\\s* \
-			\\\n\\\s+@mkdir\\\s+-p\\\s+\\\\\\$\\\(DESTDIR\\\)\\\\\\$\\\(pkglibdir\\\)) \
-     (.+\\\n\\\s+@list='\\\\\\$\\\(RUNTIME_SOURCES\\\)';.+){1,1}? \
-     (\\\\\\$\\\(pkglibdir\\\)) \
-     (.+){1,1}? \
-     (\\\\\\$\\\(pkglibdir\\\)) \
-     (.+done){1,1}? \
-     ){1,1}? \
-} \\\$fc {\\\1 \\\$(DESTDIR)\\\$(pkgdatadir)\\\2\\\$(pkgdatadir)\\\4\\\$(pkgdatadir)\\\6} fc \
-close \\\$f \
-puts -nonewline [set f [open Makefile.in w]] \\\$fc \
-close \\\$f \
-EOF\
-fi \
-%nil
-
+# helpers
 %tea_makeinstall(n:) \
 %{-n:_name="%{-n*}"}%{!-n:%{?teaname:_name="%teaname"}%{!?teaname:%{error:teaname is not set and -n wasn't given}}} \
 %makeinstall libdir=%buildroot%_tcllibdir pkglibdir=%buildroot%_tcldatadir/$_name %* \
@@ -57,7 +18,7 @@ fi \
 %{-v:_verbose="-verbose"} \
 %{-d:_direct="-direct"} \
 %{-l:_lazy="-lazy"} \
-%{-f:_files='../../../lib/tcl/%{-f*}'}%{!-f:_files='../../../lib/tcl/*.so'} \
+%{-f:_files='../../../%_lib/tcl/%{-f*}'}%{!-f:_files='../../../%_lib/tcl/*.so'} \
 %{-L:_load="-load %{-L*}"} \
 %{-C:_dir="%{-C*}"}%{!-C:%{?teaname:_dir="%buildroot%_tcldatadir/%teaname"}%{!?teaname:%{error:teaname is not set and -C wasn't given}}} \
 if ! test -d $_dir; then %__mkdir_p $_dir; fi \
