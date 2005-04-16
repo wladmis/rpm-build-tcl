@@ -11,7 +11,8 @@ PKGSRC	= \
 	tcl-macros \
 	tcl.prov \
 	tcl.req \
-	README
+	README.layout \
+	README.rpm
 
 PKGALL	= $(PKGSRC) $(RPMSPEC)
 

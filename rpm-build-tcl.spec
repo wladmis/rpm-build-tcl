@@ -1,9 +1,9 @@
 # -*- rpm-spec -*-
-# $Id: rpm-build-tcl.spec,v 1.9 2004/11/20 16:03:26 me Exp $
+# $Id: rpm-build-tcl.spec,v 1.10 2005/04/16 11:25:51 me Exp $
 
 Name: rpm-build-tcl
 Version: 0.1
-Release: alt0.3
+Release: alt0.4
 
 Summary: RPM helpers to use with Tcl scripts
 License: GPL
@@ -29,11 +29,14 @@ build process
 %__install -p -m0755 tcl.prov %buildroot%_libdir/rpm/tcl.prov
 
 %files
-%doc README
+%doc README*
 %_sysconfdir/rpm/macros.d/tcl
 %_libdir/rpm/tcl.*
 
 %changelog
+* Sat Apr 16 2005 Sergey Bolshakov <sbolshakov@altlinux.ru> 0.1-alt0.4
+- #6488 fixed
+
 * Sat Nov 20 2004 Sergey Bolshakov <sbolshakov@altlinux.ru> 0.1-alt0.3
 - catched 'exit' in scripts, which can abort findreq process
 
