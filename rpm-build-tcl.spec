@@ -1,9 +1,9 @@
 # -*- rpm-spec -*-
-# $Id: rpm-build-tcl.spec,v 1.10 2005/04/16 11:25:51 me Exp $
+# $Id: rpm-build-tcl.spec,v 1.11 2005/07/13 18:46:21 me Exp $
 
 Name: rpm-build-tcl
 Version: 0.1
-Release: alt0.4
+Release: alt0.5
 
 Summary: RPM helpers to use with Tcl scripts
 License: GPL
@@ -12,7 +12,7 @@ BuildArch: noarch
 
 Source0: %name-%version.tar
 
-PreReq: rpm-build >= 4.0.4-alt40.1
+PreReq: rpm-build >= 4.0.4-alt44
 Requires: /etc/rpm/macros.d
 Conflicts: tcl-devel < 0:8.4.7-alt2
 
@@ -25,15 +25,18 @@ build process
 
 %install
 %__install -p -m0644 -D tcl-macros %buildroot%_sysconfdir/rpm/macros.d/tcl
-%__install -p -m0755 -D tcl.req %buildroot%_libdir/rpm/tcl.req
-%__install -p -m0755 tcl.prov %buildroot%_libdir/rpm/tcl.prov
+%__install -p -m0755 -D tcl.req %buildroot%_rpmlibdir/tcl.req
+%__install -p -m0755 tcl.prov %buildroot%_rpmlibdir/tcl.prov
 
 %files
 %doc README*
 %_sysconfdir/rpm/macros.d/tcl
-%_libdir/rpm/tcl.*
+%_rpmlibdir/tcl.*
 
 %changelog
+* Wed Jul 13 2005 Sergey Bolshakov <sbolshakov@altlinux.ru> 0.1-alt0.5
+- #6488 again
+
 * Sat Apr 16 2005 Sergey Bolshakov <sbolshakov@altlinux.ru> 0.1-alt0.4
 - #6488 fixed
 
