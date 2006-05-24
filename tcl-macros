@@ -1,5 +1,5 @@
 #===============================================================================
-# $Id: tcl-macros,v 1.4 2006/05/21 16:52:49 me Exp $
+# $Id: tcl-macros,v 1.5 2006/05/24 20:38:12 me Exp $
 #===============================================================================
 # tclsh binary
 %__tclsh %_bindir/tclsh
@@ -9,15 +9,22 @@
 %_tcldatadir %_datadir/tcl
 
 # helpers
-%tea_patch \
+%teapatch(vb:C:) \
+%{-v:_verbose=1}%{!-v:set +x} \
+set -a \
+%{-b:_backup="%{-b*}"}%{!-b:_backup="..tea3"} \
+%{-C:_dir="%{-C*}"} \
 if test -f aclocal.m4; then \
-chmod ug+w aclocal.m4 \
-sed -i '@^builtin(include,.\\+/tcl.m4)@d' aclocal.m4 \
+sed -i '/^builtin(include,.\\+\\/tcl.m4)/d' aclocal.m4 \
 fi \
 if test -f Makefile.in; then \
-chmod ug+w Makefile.in \
 cat <<EOF |%__tclsh \
 set fc [read [set f [open Makefile.in]] [file size Makefile.in]] \
+close \\\$f \
+if {[info exists env\(_backup\)] && ![string eq \\\$env\(_backup\) ""]} { \
+puts -nonewline [set f [open Makefile.in\\\$env\(_backup\) w]] \\\$fc \
+close \\\$f \
+} \
 regsub {(?x) \
     (\\\npkgdatadir\\\s*=\\\s*\\\\\\$\\\(datadir\\\)/)(\\\\\\$\\\(PKG_DIR\\\)) \
 } \\\$fc {\\\1tcl/\\\2} fc \
@@ -25,7 +32,10 @@ regsub {(?x) \
     (\\\npkglibdir\\\s*=\\\s*\\\\\\$\\\(libdir\\\)/)\\\\\\$\\\(PKG_DIR\\\) \
 } \\\$fc {\\\1tcl} fc \
 regsub {(?x) \
-    (?: \
+    (\\\[file\\\s+join\\\s+\\\\\\$\\\\\\$dir)\\\s+(\\\\\\$\\\(PKG_LIB_FILE\\\)) \
+} \\\$fc {\\\1 .. .. .. %_lib tcl \\\2} fc \
+regsub {(?x) \
+    	(?: \
      (\\\ninstall-lib-binaries:\\\s* \
 			\\\n\\\s+@mkdir\\\s+-p\\\s+\\\\\\$\\\(DESTDIR\\\)\\\\\\$\\\(pkglibdir\\\)) \
      (.+\\\n\\\s+@list='\\\\\\$\\\(PKG_TCL_SOURCES\\\)';.+){1,1}? \
@@ -35,11 +45,20 @@ regsub {(?x) \
      (.+done){1,1}? \
      ){1,1}? \
 } \\\$fc {\\\1 \\\$(DESTDIR)\\\$(pkgdatadir)\\\2\\\$(pkgdatadir)\\\4\\\$(pkgdatadir)\\\6} fc \
-close \\\$f \
+regsub -all {(?x) \
+	(?: (\\\n.+pkgIndex\.tcl\\\s+\\\\\\$\\\(DESTDIR\\\))\\\\\\$\\\(pkglibdir\\\)){1,1}? \
+} \\\$fc {\\\1\\\$(pkgdatadir)} fc \
 puts -nonewline [set f [open Makefile.in w]] \\\$fc \
 close \\\$f \
 EOF\
 fi \
+if [ -n "$_verbose" -a -n "$_backup" ]; then \
+gendiff . "$_backup" ||: \
+fi \
+%{-v:unset _verbose}%{!-v:set -x} \
+%{-b:unset _backup} \
+%{-C:unset _dir} \
+set +a \
 %nil
 
 %tea_makeinstall(n:) \
