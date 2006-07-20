@@ -1,5 +1,5 @@
 #===============================================================================
-# $Id: tcl-macros,v 1.5 2006/05/24 20:38:12 me Exp $
+# $Id: tcl-macros,v 1.6 2006/07/20 17:12:15 me Exp $
 #===============================================================================
 # tclsh binary
 %__tclsh %_bindir/tclsh
@@ -9,15 +9,16 @@
 %_tcldatadir %_datadir/tcl
 
 # helpers
-%teapatch(vb:C:) \
+%teapatch(fvb:C:) \
 %{-v:_verbose=1}%{!-v:set +x} \
 set -a \
+%{-f:_force=1} \
 %{-b:_backup="%{-b*}"}%{!-b:_backup="..tea3"} \
-%{-C:_dir="%{-C*}"} \
-if test -f aclocal.m4; then \
+%{-C:_mydir="`pwd`"; cd "%{-C*}"} \
+if [ -n "$_force" -a -f aclocal.m4 ]; then \
 sed -i '/^builtin(include,.\\+\\/tcl.m4)/d' aclocal.m4 \
 fi \
-if test -f Makefile.in; then \
+if [ -f Makefile.in ]; then \
 cat <<EOF |%__tclsh \
 set fc [read [set f [open Makefile.in]] [file size Makefile.in]] \
 close \\\$f \
@@ -32,13 +33,13 @@ regsub {(?x) \
     (\\\npkglibdir\\\s*=\\\s*\\\\\\$\\\(libdir\\\)/)\\\\\\$\\\(PKG_DIR\\\) \
 } \\\$fc {\\\1tcl} fc \
 regsub {(?x) \
-    (\\\[file\\\s+join\\\s+\\\\\\$\\\\\\$dir)\\\s+(\\\\\\$\\\(PKG_LIB_FILE\\\)) \
+    (\\\[file\\\s+join\\\s+\\\\\\$\\\\\\$dir)\\\s+(\\\\\\$\\\(\\\S+_LIB_FILE\\\)) \
 } \\\$fc {\\\1 .. .. .. %_lib tcl \\\2} fc \
 regsub {(?x) \
     	(?: \
      (\\\ninstall-lib-binaries:\\\s* \
 			\\\n\\\s+@mkdir\\\s+-p\\\s+\\\\\\$\\\(DESTDIR\\\)\\\\\\$\\\(pkglibdir\\\)) \
-     (.+\\\n\\\s+@list='\\\\\\$\\\(PKG_TCL_SOURCES\\\)';.+){1,1}? \
+     (.+\\\n\\\s+@list='\\\\\\$\\\(\\\S+_SOURCES\\\)';.+){1,1}? \
      (\\\\\\$\\\(pkglibdir\\\)) \
      (.+){1,1}? \
      (\\\\\\$\\\(pkglibdir\\\)) \
@@ -55,9 +56,10 @@ fi \
 if [ -n "$_verbose" -a -n "$_backup" ]; then \
 gendiff . "$_backup" ||: \
 fi \
+%{-f:unset _force} \
 %{-v:unset _verbose}%{!-v:set -x} \
 %{-b:unset _backup} \
-%{-C:unset _dir} \
+%{-C:cd "${_mydir}"; unset _mydir} \
 set +a \
 %nil
 

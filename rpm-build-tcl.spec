@@ -1,9 +1,9 @@
 # -*- rpm-spec -*-
-# $Id: rpm-build-tcl.spec,v 1.13 2006/05/24 20:54:11 me Exp $
+# $Id: rpm-build-tcl.spec,v 1.14 2006/07/20 17:12:36 me Exp $
 
 Name: rpm-build-tcl
 Version: 0.2
-Release: alt0.2
+Release: alt1
 
 Summary: RPM helpers to use with Tcl scripts
 License: GPL
@@ -34,7 +34,7 @@ build process
 %_rpmlibdir/tcl.*
 
 %changelog
-* Sun May 21 2006 Sergey Bolshakov <sbolshakov@altlinux.ru> 0.2-alt0.2
+* Thu Jul 20 2006 Sergey Bolshakov <sbolshakov@altlinux.ru> 0.2-alt1
 - %%teapatch macro resurrected
 
 * Wed Jul 13 2005 Sergey Bolshakov <sbolshakov@altlinux.ru> 0.1-alt0.5
