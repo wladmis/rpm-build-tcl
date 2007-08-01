@@ -8,6 +8,16 @@
 %_tcllibdir %_libdir/tcl
 %_tcldatadir %_datadir/tcl
 
+# macros from rpm/platform.in
+%_tcl_lib_path	""
+%_tcl_req_method	normal
+%_tcl_req_skip	""
+
+%set_tcl_req_method()	%global _tcl_req_method %1
+
+%add_tcl_req_skip()	%global _tcl_req_skip %_tcl_req_skip %*
+%add_tcl_lib_path()	%global _tcl_lib_path %_tcl_lib_path %*
+
 # helpers
 %teapatch(fvb:C:) \
 %{-v:_verbose=1}%{!-v:set +x} \
