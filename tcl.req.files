@@ -1,0 +1,24 @@
+#!/bin/sh -efu
+
+while IFS=$'\t' read -r f t; do
+	# tcl modules
+	case "$f" in
+		*.tcl)
+			echo "$f"; continue ;;
+	esac
+	# scripts
+	case "$t" in
+		#!/usr/bin/tclsh
+		*"/tclsh script text"*)
+			echo "$f"; continue ;;
+		#!/usr/bin/env tclsh
+		*" tclsh script text"*)
+			echo "$f"; continue ;;
+		#!/usr/bin/wish
+		*"/wish script text"*)
+			echo "$f"; continue ;;
+		#!/usr/bin/env wish
+		*" wish script text"*)
+			echo "$f"; continue ;;
+	esac
+done

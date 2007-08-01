@@ -26,7 +26,9 @@ build process
 %install
 %__install -p -m0644 -D tcl-macros %buildroot%_sysconfdir/rpm/macros.d/tcl
 %__install -p -m0755 -D tcl.req %buildroot%_rpmlibdir/tcl.req
+%__install -p -m0755 -D tcl.req.files %buildroot%_rpmlibdir/tcl.req.files
 %__install -p -m0755 tcl.prov %buildroot%_rpmlibdir/tcl.prov
+%__install -p -m0755 tcl.prov.files %buildroot%_rpmlibdir/tcl.prov.files
 
 %files
 %doc README*
