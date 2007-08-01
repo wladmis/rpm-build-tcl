@@ -3,7 +3,7 @@
 while IFS=$'\t' read -r f t; do
 	# tcl modules
 	case "$f" in
-		*.tcl)
+		*/pkgIndex.tcl)
 			echo "$f"; continue ;;
 	esac
 done
