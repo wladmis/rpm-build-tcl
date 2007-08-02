@@ -2,7 +2,7 @@
 # $Id: rpm-build-tcl.spec,v 1.14 2006/07/20 17:12:36 me Exp $
 
 Name: rpm-build-tcl
-Version: 0.2
+Version: 0.2.1
 Release: alt1
 
 Summary: RPM helpers to use with Tcl scripts
@@ -38,6 +38,12 @@ build process
 %_rpmlibdir/tcl.*
 
 %changelog
+* Fri Aug 03 2007 Alexey Tourbin <at@altlinux.ru> 0.2.1-alt1
+- added new files, for possible use with future rpm-build releases:
+  + tcl.req.files (.prov.files) - will select tcl files for req/prov
+  + /etc/rpm/macros.d/tcl.env - piece of rpm-build scriplets' preamble
+  + also placed rpm-build tcl macros to /etc/rpm/macros.d/tcl
+
 * Thu Jul 20 2006 Sergey Bolshakov <sbolshakov@altlinux.ru> 0.2-alt1
 - %%teapatch macro resurrected
 
