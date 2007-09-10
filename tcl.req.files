@@ -13,17 +13,10 @@ while IFS=$'\t' read -r f t; do
 	esac
 	# scripts
 	case "$t" in
-		#!/usr/bin/tclsh
-		*"/tclsh script text"*)
-			echo "$f"; continue ;;
-		#!/usr/bin/env tclsh
-		*" tclsh script text"*)
-			echo "$f"; continue ;;
-		#!/usr/bin/wish
-		*"/wish script text"*)
-			echo "$f"; continue ;;
-		#!/usr/bin/env wish
-		*" wish script text"*)
-			echo "$f"; continue ;;
+		# handles both "#!/usr/bin/tclsh" and "#!/usr/bin/env tclsh"
+		*[\ /]"tclsh script text executable"*) ;;
+		*[\ /]"wish script text executable"*) ;;
+		*) continue ;;
 	esac
+	echo "$f"
 done
