@@ -1,5 +1,20 @@
 #!/bin/sh -efu
 
+has_exec=
+check_exec()
+{
+	local f="$1" line1=; shift
+	has_exec=
+	if line1=$(egrep -m1 -v '^[[:space:]]*(#|$)' "$f"); then
+		set -- $line1
+		if [ $# -gt 1 ] && [ "$1" = exec ]; then
+			if echo "$2" |egrep -qs '\<(tclsh|wish)\>'; then
+				has_exec=1
+			fi
+		fi
+	fi
+}
+
 while IFS=$'\t' read -r f t; do
 	# tcl modules
 	case "$f" in
@@ -16,6 +31,9 @@ while IFS=$'\t' read -r f t; do
 		# handles both "#!/usr/bin/tclsh" and "#!/usr/bin/env tclsh"
 		*[\ /]"tclsh script text executable"*) ;;
 		*[\ /]"wish script text executable"*) ;;
+		*"Bourne shell script text executable"*)
+			check_exec "$f"
+			[ -n "$has_exec" ] || continue ;;
 		*) continue ;;
 	esac
 	echo "$f"
