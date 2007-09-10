@@ -26,6 +26,10 @@ while IFS=$'\t' read -r f t; do
 			esac
 			continue ;;
 	esac
+# Current tcl.req analyzer cannot be used for scripts, because it
+# essentially executes Tcl code.  Processing of scripts is logically
+# disabled with this single clause:
+	continue
 	# scripts
 	case "$t" in
 		# handles both "#!/usr/bin/tclsh" and "#!/usr/bin/env tclsh"
