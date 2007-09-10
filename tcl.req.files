@@ -36,5 +36,6 @@ while IFS=$'\t' read -r f t; do
 			[ -n "$has_exec" ] || continue ;;
 		*) continue ;;
 	esac
+	# maybe test -x?
 	echo "$f"
 done
