@@ -5,14 +5,11 @@ while IFS=$'\t' read -r f t; do
 	case "$f" in
 		*.tcl)
 			case "$t" in
-				*"symbolic link to"*)
-					continue ;;
-				*" text"*)
-					echo "$f"; continue ;;
-				*)
-					echo "${0##*/}: $f: $t" >&2
-					echo "$f"; continue ;;
+				*"symbolic link to"*) ;;
+				*" text"*) echo "$f" ;;
+				*) echo "${0##*/}: $f: $t" >&2 ;;
 			esac
+			continue ;;
 	esac
 	# scripts
 	case "$t" in
