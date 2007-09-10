@@ -95,8 +95,8 @@ proc ::pkg::rpm::requires f {
     if {[catch {
 	$i eval [list source $f]
     } err]} {
-	# todo verbose
-	# puts stderr "warning: $f: $err"
+	# XXX should be fatal
+	puts stderr "tcl.req: $f: $err"
     }
 
     interp delete $i
