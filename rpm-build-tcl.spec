@@ -39,11 +39,12 @@ build process
 %_rpmlibdir/tcl.*
 
 %changelog
-* Fri Aug 03 2007 Alexey Tourbin <at@altlinux.ru> 0.2.1-alt1
-- added new files, for possible use with future rpm-build releases:
+* Mon Sep 24 2007 Alexey Tourbin <at@altlinux.ru> 0.2.1-alt1
+- added new files, for use with new rpm-build:
   + tcl.req.files (.prov.files) - will select tcl files for req/prov
   + /etc/rpm/macros.d/tcl.env - piece of rpm-build scriplets' preamble
   + also placed rpm-build tcl macros to /etc/rpm/macros.d/tcl
+- tcl.req: enabled warning when "eval source" fails
 
 * Thu Jul 20 2006 Sergey Bolshakov <sbolshakov@altlinux.ru> 0.2-alt1
 - %%teapatch macro resurrected
