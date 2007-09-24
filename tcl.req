@@ -103,8 +103,7 @@ proc ::pkg::rpm::requires f {
 }
 
 namespace eval ::pkg::rpm {
-    set flist [ if {$argc > 0} {list $argv} else {split [string trim [read stdin] "\n"] "\n"} ]
-    foreach _ $flist {
+    foreach _ [split [string trim [read stdin]]] {
 	requires $_
     }
 
