@@ -28,26 +28,54 @@ exec ${RPM_TCLSH:-/usr/bin/tclsh} "$0" "$@"
 
 namespace eval ::pkg::rpm {
     if {![info exists ::env(RPM_BUILD_ROOT)]} return
-    variable pattern [list]
+    variable pkgpattern [list]
+    variable modpattern [list]
 
     foreach p [concat $::tcl_pkgPath \
 		   [expr {[info exists ::env(RPM_TCL_LIB_PATH)] ?
 			  [lsort -uniq [split [string trim $::env(RPM_TCL_LIB_PATH)]]] :
 			  [list]}]] {
 	if {[file pathtype $p] eq {absolute}} {
-	    lappend pattern \
+	    lappend pkgpattern \
 		[eval file join / $::env(RPM_BUILD_ROOT) [lrange [file split $p] 1 end] *]
+	}
+    }
+
+    if {![catch {tcl::tm::path list} tmpath]} {
+	if {[string match $::env(RPM_BUILD_ROOT)/* $::env(RPM_TCLSH)]} {
+	    set modpattern tmpath
+	} else {
+	    foreach p tmpath {
+		lappend modpattern $::env(RPM_BUILD_ROOT)$p
+	    }
 	}
     }
 }
 
 proc ::pkg::rpm::filter {} {
-    variable pattern
+    variable modpattern
+    variable pkgpattern
     
     set result [list]
     set flist [split [string trim [read stdin] \n]]
-    foreach _ $pattern {
-	set result [concat $result [lsearch -glob -all -inline $flist $_]]
+
+    foreach _ $modpattern {
+	foreach p [lsearch -glob -all -inline $flist $_/*] {
+	    set result [lappend result $p]
+	    puts "tcl\([string map {/ :: - {) = } .tm ""} [string range $p [string len $_/] end]]"
+	}
+    }
+
+    set unseen [list]
+    foreach p $flist {
+	if {[lsearch -exact $result $p] == -1} {
+	    lappend unseen $p
+	}
+    }
+
+    set result [list]
+    foreach _ $pkgpattern {
+	set result [concat $result [lsearch -glob -all -inline $unseen $_]]
     }
     lsort -uniq $result
 }
@@ -72,8 +100,6 @@ proc ::pkg::rpm::__package {interp args} {
 }
 
 proc ::pkg::rpm::provides f {
-    variable provides
-
     set i [interp create]
 
     $i eval {

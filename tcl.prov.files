@@ -1,9 +1,9 @@
 #!/bin/sh -efu
 
 while IFS=$'\t' read -r f t; do
-	# tcl modules
+	# tcl modules & packages
 	case "$f" in
-		*/pkgIndex.tcl)
+		*/pkgIndex.tcl|*.tm)
 			echo "$f"; continue ;;
 	esac
 done
