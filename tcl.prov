@@ -43,9 +43,9 @@ namespace eval ::pkg::rpm {
 
     if {![catch {tcl::tm::path list} tmpath]} {
 	if {[string match $::env(RPM_BUILD_ROOT)/* $::env(RPM_TCLSH)]} {
-	    set modpattern tmpath
+	    set modpattern $tmpath
 	} else {
-	    foreach p tmpath {
+	    foreach p $tmpath {
 		lappend modpattern $::env(RPM_BUILD_ROOT)$p
 	    }
 	}
@@ -56,20 +56,20 @@ proc ::pkg::rpm::filter {} {
     variable modpattern
     variable pkgpattern
     
-    set result [list]
     set flist [split [string trim [read stdin] \n]]
 
+    set result [list]
     foreach _ $modpattern {
 	foreach p [lsearch -glob -all -inline $flist $_/*] {
-	    set result [lappend result $p]
+	    lappend result $p
 	    puts "tcl\([string map {/ :: - {) = } .tm ""} [string range $p [string len $_/] end]]"
 	}
     }
 
     set unseen [list]
-    foreach p $flist {
-	if {[lsearch -exact $result $p] == -1} {
-	    lappend unseen $p
+    foreach _ $flist {
+	if {[lsearch -exact $result $_] == -1} {
+	    lappend unseen $_
 	}
     }
 
