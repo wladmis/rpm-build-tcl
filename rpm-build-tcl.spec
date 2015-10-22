@@ -9,7 +9,7 @@ BuildArch: noarch
 
 Source0: %name-%version.tar
 
-PreReq: rpm-build >= 4.0.4-alt44
+Conflicts: rpm-build < 4.0.4-alt44
 Requires: /etc/rpm/macros.d
 Conflicts: tcl-devel < 0:8.4.7-alt2
 
