@@ -10,7 +10,6 @@ BuildArch: noarch
 Source0: %name-%version.tar
 
 Conflicts: rpm-build < 4.0.4-alt44
-Requires: /etc/rpm/macros.d
 Conflicts: tcl-devel < 0:8.4.7-alt2
 
 %description
@@ -21,8 +20,8 @@ build process
 %setup -c
 
 %install
-install -p -m0644 -D tcl-macros %buildroot%_sysconfdir/rpm/macros.d/tcl
-install -p -m0644 -D tcl-macros.env %buildroot%_sysconfdir/rpm/macros.d/tcl.env
+install -p -m0644 -D tcl-macros %buildroot%_rpmmacrosdir/tcl
+install -p -m0644 -D tcl-macros.env %buildroot%_rpmmacrosdir/tcl.env
 install -p -m0755 -D tcl.req %buildroot%_rpmlibdir/tcl.req
 install -p -m0755 -D tcl.req.files %buildroot%_rpmlibdir/tcl.req.files
 install -p -m0755 tcl.prov %buildroot%_rpmlibdir/tcl.prov
@@ -30,8 +29,8 @@ install -p -m0755 tcl.prov.files %buildroot%_rpmlibdir/tcl.prov.files
 
 %files
 %doc README*
-%config %_sysconfdir/rpm/macros.d/tcl
-%config %_sysconfdir/rpm/macros.d/tcl.env
+%_rpmmacrosdir/tcl
+%_rpmmacrosdir/tcl.env
 %_rpmlibdir/tcl.*
 
 %changelog
