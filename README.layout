@@ -13,7 +13,7 @@
  + %add_tcl_lib_path() <value>
    добавляет <value> в список путей, где будет производиться
    поиск provides;
-   значение по умолчанию: /usr/share/tcl
+   значения по умолчанию: /usr/share/tcl, %_libdir/tcl
 
  + %add_tcl_req_skip() <value>
    добавляет <value> в список подавляемых зависимостей

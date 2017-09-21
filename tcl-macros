@@ -44,21 +44,21 @@ regsub {(?x) \
 } \\\$fc {\\\1tcl} fc \
 regsub {(?x) \
     (\\\[file\\\s+join\\\s+\\\\\\$\\\\\\$dir)\\\s+(\\\\\\$\\\(\\\S+_LIB_FILE\\\)) \
-} \\\$fc {\\\1 .. .. .. %_lib tcl \\\2} fc \
+} \\\$fc {\\\1 .. \\\2} fc \
 regsub {(?x) \
     	(?: \
-     (\\\ninstall-lib-binaries:\\\s* \
-			\\\n\\\s+@mkdir\\\s+-p\\\s+\\\\\\$\\\(DESTDIR\\\)\\\\\\$\\\(pkglibdir\\\)) \
+     (\\\ninstall-lib-binaries:.* \
+			\\\n\\\s+@mkdir\\\s+-p\\\s+\\\\\\$\\\(DESTDIR\\\)\\\\\\$\\\(pkglibdir\\\)){1,1} \
      (.+\\\n\\\s+@list='\\\\\\$\\\(\\\S+_SOURCES\\\)';.+){1,1}? \
      (\\\\\\$\\\(pkglibdir\\\)) \
      (.+){1,1}? \
      (\\\\\\$\\\(pkglibdir\\\)) \
      (.+done){1,1}? \
      ){1,1}? \
-} \\\$fc {\\\1 \\\$(DESTDIR)\\\$(pkgdatadir)\\\2\\\$(pkgdatadir)\\\4\\\$(pkgdatadir)\\\6} fc \
+} \\\$fc {\\\1/\\\$(PACKAGE_NAME)\\\$(PACKAGE_VERSION) \\\$(DESTDIR)\\\$(pkgdatadir)\\\2\\\$(pkgdatadir)\\\4\\\$(pkgdatadir)\\\6} fc \
 regsub -all {(?x) \
-	(?: (\\\n.+pkgIndex\.tcl\\\s+\\\\\\$\\\(DESTDIR\\\))\\\\\\$\\\(pkglibdir\\\)){1,1}? \
-} \\\$fc {\\\1\\\$(pkgdatadir)} fc \
+	(?: (\\\n.+pkgIndex\.tcl\\\s+\\\\\\$\\\(DESTDIR\\\)\\\\\\$\\\(pkglibdir\\\))){1,1}? \
+} \\\$fc {\\\1/\\\$(PACKAGE_NAME)\\\$(PACKAGE_VERSION)/} fc \
 puts -nonewline [set f [open Makefile.in w]] \\\$fc \
 close \\\$f \
 EOF\
@@ -82,9 +82,9 @@ set +a \
 %{-v:_verbose="-verbose"} \
 %{-d:_direct="-direct"} \
 %{-l:_lazy="-lazy"} \
-%{-f:_files='../../../%_lib/tcl/%{-f*}'}%{!-f:_files='../../../%_lib/tcl/*.so'} \
+%{-f:_files='../%{-f*}'}%{!-f:_files='../*.so'} \
 %{-L:_load="-load %{-L*}"} \
-%{-C:_dir="%{-C*}"}%{!-C:%{?teaname:_dir="%buildroot%_tcldatadir/%teaname"}%{!?teaname:%{error:teaname is not set and -C wasn't given}}} \
+%{-C:_dir="%{-C*}"}%{!-C:%{?teaname:_dir="%buildroot%_tcllibdir/%teaname"}%{!?teaname:%{error:teaname is not set and -C wasn't given}}} \
 if ! test -d $_dir; then %__mkdir_p $_dir; fi \
 echo pkg_mkIndex $_verbose $_direct $_lazy $_load -- $_dir '*.tcl' $_files %* |%__tclsh \
 %{-v:unset _verbose} \
