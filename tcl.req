@@ -89,6 +89,7 @@ proc ::pkg::rpm::requires f {
     $i alias package [namespace current]::__package $i
 
     $i eval [list proc exit args {}]
+    $i eval [list proc open args {}]
     $i eval [list proc puts args {}]
     $i eval [list proc unknown args {}]
 
