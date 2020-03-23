@@ -18,8 +18,48 @@
 %add_tcl_req_skip()	%global _tcl_req_skip %_tcl_req_skip %*
 %add_tcl_lib_path()	%global _tcl_lib_path %_tcl_lib_path %*
 
+%_tclpkglibdir %{!?_tea_noarch:\\$(libdir)}%{?_tea_noarch:\\$(datadir)}/tcl
+
 # helpers
+%tea_patch(fvb:C:) \
+%{-v:_verbose=1}%{!-v:set +x} \
+set -a \
+%{-f:_force=1} \
+%{-b:_backup="%{-b*}"}%{!-b:_backup="..tea3"} \
+%{-C:_mydir="`pwd`"; cd "%{-C*}"} \
+if [ -n "$_force" -a -f aclocal.m4 ]; then \
+sed -i '/^builtin(include,.\\+\\/tcl.m4)/d' aclocal.m4 \
+fi \
+if [ -f Makefile.in ]; then \
+cat <<EOF |%__tclsh \
+set fc [read [set f [open Makefile.in]] [file size Makefile.in]] \
+close \\\$f \
+if {[info exists env\(_backup\)] && ![string eq \\\$env\(_backup\) ""]} { \
+puts -nonewline [set f [open Makefile.in\\\$env\(_backup\) w]] \\\$fc \
+close \\\$f \
+} \
+regsub {(?x) \
+    (\\\npkgdatadir\\\s*=\\\s*\\\\\\$\\\(datadir\\\)/)(\\\\\\$\\\(PKG_DIR\\\)) \
+} \\\$fc {\\\1tcl/\\\2} fc \
+regsub {(?x) \
+    (\\\npkglibdir\\\s*=\\\s*)\\\\\\$\\\(libdir\\\)/(\\\\\\$\\\(PKG_DIR\\\)) \
+} \\\$fc {\\\1%_tclpkglibdir/\\\2} fc \
+puts -nonewline [set f [open Makefile.in w]] \\\$fc \
+close \\\$f \
+EOF\
+fi \
+if [ -n "$_verbose" -a -n "$_backup" ]; then \
+gendiff . "$_backup" ||: \
+fi \
+%{-f:unset _force} \
+%{-v:unset _verbose}%{!-v:set -x} \
+%{-b:unset _backup} \
+%{-C:cd "${_mydir}"; unset _mydir} \
+set +a \
+%nil
+
 %teapatch(fvb:C:) \
+%{warning %%teapatch is deprecated, use %%tea_patch instread (see https://www.altlinux.org/TCL_Policy)} \
 %{-v:_verbose=1}%{!-v:set +x} \
 set -a \
 %{-f:_force=1} \
