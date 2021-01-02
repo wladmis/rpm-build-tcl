@@ -36,18 +36,18 @@ proc ::pkg::rpm::addreq {type rest} {
     variable requires
 
     if {[lindex $rest 0] eq "-exact"} {
-	set versioned {}
+	set strict {}
 	set rest [lrange $rest 1 end]
     }
 
     foreach {name version} $rest break
-    
+
     if {$name eq "Tcl"} return
 
     lappend $type \
-	[expr {[info exists versioned] ?
-	       [list $name $version] :
-	       [list $name {}]}]
+	[expr {[info exists strict] ?
+	       [list $name $version =] :
+	       [list $name $version {}]}]
 }
 
 proc ::pkg::rpm::__package {interp args} {
@@ -122,13 +122,30 @@ namespace eval ::pkg::rpm {
     }
 
     foreach _ $requires {
-	foreach {n v} $_ break
+	foreach {n v f} $_ break
 	if {[info exists skiplist] &&
 	    [lsearch -exact $skiplist $n] != -1} continue
-	if {$v eq {}} {
-	    puts "tcl\($n\)"
-	} else {
-	    puts "tcl\($n\) = $v"
+
+	puts "tcl\($n\)"
+	if {$v ne {}} {
+	    if {$f eq {}} { set f ">=" }
+
+	    set m [lindex [split $v .] 0]
+
+	    lassign [split $v -] minv maxv
+	    if {$maxv eq {}} {
+		puts "tcl\($n\)-$m $f $minv"
+	    } else {
+		if {$minv eq $maxv} {set f "="}
+
+		set maxm [lindex [split $maxv .] 0]
+
+		# check whether minv and maxv majors are the same
+		# rpm cannot hanle it right if they are not
+		if {$m == $maxm} {
+		    puts "tcl\($n\)-$maxm $f $minv"
+		}
+	    }
 	}
     }
 }

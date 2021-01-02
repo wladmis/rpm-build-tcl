@@ -55,14 +55,21 @@ namespace eval ::pkg::rpm {
 proc ::pkg::rpm::filter {} {
     variable modpattern
     variable pkgpattern
-    
+
     set flist [split [string trim [read stdin] \n]]
 
     set result [list]
     foreach _ $modpattern {
 	foreach p [lsearch -glob -all -inline $flist $_/*] {
 	    lappend result $p
-	    puts "tcl\([string map {/ :: - {) = } .tm ""} [string range $p [string len $_/] end]]"
+	    lassign [split [string range $p [string len $_/] end] -] n v
+	    set n [string map {/ ::} $n]
+	    puts "tcl\($n\)"
+	    if {[string length $v] != 0} {
+		set v [string map {.tm ""} $v]
+		set m [lindex [split $v .] 0]
+		puts "tcl\($n\)-$m = $v"
+	    }
 	}
     }
 
@@ -115,11 +122,13 @@ proc ::pkg::rpm::provides f {
     $i eval [list set dir [file dirname $f]]
     $i eval [list source $f]
     foreach n [$i eval [list package names]] {
+	puts "tcl\($n\)"
 	foreach v [$i eval [list package versions $n]] {
-	    puts "tcl\($n\) = $v"
+	    set m [lindex [split $v .] 0]
+	    puts "tcl\($n\)-$m = $v"
 	}
     }
-    
+
     interp delete $i
 }
 
