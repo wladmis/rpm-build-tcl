@@ -133,6 +133,11 @@ namespace eval ::pkg::rpm {
 	    set m [lindex [split $v .] 0]
 
 	    lassign [split $v -] minv maxv
+
+	    # strip away "alpha" and "beta" from version
+	    set minv [regsub {[ab].*$} $minv ""]
+	    set maxv [regsub {[ab].*$} $maxv ""]
+
 	    if {$maxv eq {}} {
 		puts "tcl\($n\)-$m $f $minv"
 	    } else {
