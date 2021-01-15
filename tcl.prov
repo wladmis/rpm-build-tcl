@@ -122,13 +122,17 @@ proc ::pkg::rpm::provides f {
     $i eval [list set dir [file dirname $f]]
     $i eval [list source $f]
     foreach n [$i eval [list package names]] {
-	puts "tcl\($n\)"
-	foreach v [$i eval [list package versions $n]] {
-	    # strip away "alpha" and "beta" from version
-	    set v [regsub {[ab].*$} $v ""]
+	set vlist [$i eval [list package versions $n]]
+	if {[llength $vlist]} {
+	    puts "tcl\($n\)"
 
-	    set m [lindex [split $v .] 0]
-	    puts "tcl\($n\)-$m = $v"
+	    foreach v $vlist {
+		# strip away "alpha" and "beta" from version
+		set v [regsub {[ab].*$} $v ""]
+
+		set m [lindex [split $v .] 0]
+		puts "tcl\($n\)-$m = $v"
+	    }
 	}
     }
 
