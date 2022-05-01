@@ -5,10 +5,10 @@ check_exec()
 {
 	local f="$1" line1=; shift
 	has_exec=
-	if line1=$(egrep -m1 -v '^[[:space:]]*(#|$)' "$f"); then
+	if line1=$(grep -Em1 -v '^[[:space:]]*(#|$)' "$f"); then
 		set -- $line1
 		if [ $# -gt 1 ] && [ "$1" = exec ]; then
-			if echo "$2" |egrep -qs '\<(tclsh|wish)\>'; then
+			if echo "$2" |grep -Eqs '\<(tclsh|wish)\>'; then
 				has_exec=1
 			fi
 		fi
